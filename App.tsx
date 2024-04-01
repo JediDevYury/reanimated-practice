@@ -1,9 +1,16 @@
 import { StyleSheet, View } from 'react-native';
-import {useSharedValue, useAnimatedStyle, withSpring, withRepeat, DerivedValue} from 'react-native-reanimated';
+import {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withRepeat,
+  DerivedValue,
+  useAnimatedScrollHandler
+} from 'react-native-reanimated';
 import Animated from 'react-native-reanimated';
-import {useEffect} from "react";
+import {Page} from "./components/Page";
 
-const SIZE = 100.0;
+const WORDS = ["What's", "up", "React", "Native", "Master"];
 
 const handleRotation = (progress: DerivedValue<number>) => {
   'worklet';
@@ -12,40 +19,34 @@ const handleRotation = (progress: DerivedValue<number>) => {
 }
 
 export default function App() {
-  const progress = useSharedValue(1);
-  const scale = useSharedValue(2);
-
-  const reanimatedStyle = useAnimatedStyle(() => {
-    return {
-      opacity: progress.value,
-      borderRadius: (progress.value * SIZE) / 2,
-      transform: [{ scale: scale.value }, {
-        rotate: handleRotation(progress),
-      }],
-    };
-  }, []);
-
-  useEffect(() => {
-    progress.value = withRepeat(withSpring(0.5), 3, true)
-    scale.value = withRepeat(withSpring(1), 3, true)
-  }, []);
+  const translateX = useSharedValue(0);
+  const scrollHandler = useAnimatedScrollHandler((event) => {
+    translateX.value = event.contentOffset.x;
+  });
 
   return (
-    <View style={styles.container}>
-      <Animated.View style={[{
-        height: SIZE,
-        width: SIZE,
-        backgroundColor: 'blue',
-      }, reanimatedStyle]} />
-    </View>
+    <Animated.ScrollView
+     horizontal
+     style={styles.container}
+     onScroll={scrollHandler}
+     scrollEventThrottle={16}
+     pagingEnabled
+    >
+      {WORDS.map((word, index) => {
+        return <Page
+         key={index.toString()}
+         title={word}
+         index={index}
+         translateX={translateX}
+        />
+      }, [])}
+    </Animated.ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: 'white',
   },
 });
