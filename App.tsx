@@ -1,4 +1,4 @@
-import {StyleSheet, Image, Dimensions, ImageBackground, Text} from 'react-native';
+import {StyleSheet, Image, Dimensions, ImageBackground } from 'react-native';
 import {Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from "react-native-reanimated";
 import {useCallback} from "react";
