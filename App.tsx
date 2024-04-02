@@ -1,57 +1,73 @@
-import {StyleSheet, View} from 'react-native';
-import Animated, {useAnimatedStyle, useSharedValue, withSpring} from 'react-native-reanimated';
-import {Gesture, GestureDetector, GestureHandlerRootView} from "react-native-gesture-handler";
-import {useRef} from "react";
+import {StyleSheet, Image, Dimensions, ImageBackground, Text} from 'react-native';
+import {Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
+import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from "react-native-reanimated";
+import {useCallback} from "react";
 
-const SIZE = 100.0;
+const { width: SIZE } = Dimensions.get('window');
 
-
-const CIRCLE_RADIUS = SIZE * 2;
+const AnimatedImage = Animated.createAnimatedComponent(Image);
 
 export default function App() {
-  const translateX = useSharedValue(0);
-  const translateY = useSharedValue(0);
-  const prevX = useRef(0);
-  const prevY = useRef(0);
-
-  const gesture = Gesture.Pan()
-   .onStart(() => {
-     prevX.current = translateY.value
-     prevY.current = translateX.value
-   })
-   .onUpdate((e) => {
-      translateX.value = e.translationX + prevX.current;
-      translateY.value = e.translationY + prevY.current;
-   })
-   .onEnd(() => {
-      const distance = Math.sqrt(translateX.value ** 2 + translateY.value ** 2);
-
-      if(!(distance < CIRCLE_RADIUS + SIZE / 2)) {
-        prevX.current = translateX.value;
-        prevY.current = translateY.value;
-        return;
-      }
-
-      translateX.value = withSpring(0);
-      translateY.value = withSpring(0);
-   })
+  const scale = useSharedValue(0)
+  const opacity = useSharedValue(1)
 
   const rStyle = useAnimatedStyle(() => {
     return {
-      transform: [
-        { translateX: translateX.value },
-        { translateY: translateY.value },
-      ],
+      transform: [{ scale: Math.max(scale.value, 0)}],
     };
-  });
+  })
+
+  const rOpacity = useAnimatedStyle(() => {
+    return {
+      opacity: opacity.value,
+    };
+  })
+
+  const onDoubleTap = useCallback(() => {
+    scale.value = withSpring(1, undefined, isFinished => {
+      if (isFinished) {
+        scale.value = withDelay(500, withSpring(0));
+      }
+    });
+  }, [])
+
+  const onSingleTap = useCallback(() => {
+    opacity.value = withTiming(0, undefined, isFinished => {
+      if (isFinished) {
+        opacity.value = withDelay(500, withTiming(1));
+      }
+    });
+  }, [])
+
+  const singleTapGestureHandler = Gesture.Tap()
+   .onStart(onSingleTap);
+
+  const doubleTapGestureHandler = Gesture.Tap()
+   .maxDelay(250)
+   .numberOfTaps(2)
+   .onStart(onDoubleTap);
 
   return (
     <GestureHandlerRootView style={styles.container}>
-        <View style={styles.circle}>
-          <GestureDetector gesture={gesture}>
-            <Animated.View style={[styles.square, rStyle]} />
-          </GestureDetector>
-        </View>
+        <GestureDetector gesture={
+          Gesture.Exclusive(
+           doubleTapGestureHandler,
+           singleTapGestureHandler
+          )}>
+         <Animated.View>
+           <ImageBackground
+            source={require('./assets/image.jpeg')}
+            style={styles.image}
+           >
+             <AnimatedImage
+              style={[styles.image, styles.heart, rStyle]}
+              source={require('./assets/heart.png')}
+              resizeMode="center"
+             />
+           </ImageBackground>
+           <Animated.Text style={[styles.turtleStyle, rOpacity]}>🐢🐢🐢🐢🐢</Animated.Text>
+         </Animated.View>
+        </GestureDetector>
     </GestureHandlerRootView>
   );
 }
@@ -59,23 +75,25 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
-    alignItems: 'center',
+    backgroundColor: '#fff',
     justifyContent: 'center',
+    alignItems: 'center',
   },
-  square: {
+  image: {
     width: SIZE,
     height: SIZE,
-    backgroundColor: `rgba(0, 0, 256, 0.5)`,
-    borderRadius: 20,
   },
-  circle: {
-    width: CIRCLE_RADIUS * 2,
-    height: CIRCLE_RADIUS * 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: CIRCLE_RADIUS,
-    borderWidth: 5,
-    borderColor: `rgba(0, 0, 256, 0.5)`,
+  heart: {
+    shadowOffset: {
+      width: 0,
+      height: 20,
+    },
+    shadowOpacity: 0.35,
+    shadowRadius: 35,
+  },
+  turtleStyle: {
+    fontSize: 40,
+    textAlign: 'center',
+    marginTop: 35,
   }
 });
