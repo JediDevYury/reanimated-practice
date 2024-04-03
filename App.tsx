@@ -1,14 +1,22 @@
-import {Text, View, StyleSheet} from 'react-native';
-import Ripple from "./components/Ripple";
+import { View, StyleSheet} from 'react-native';
+import CircularCarousel from "./components/CircularCarousel";
+
+const data = [
+  require('./assets/images/00.jpg'),
+  require('./assets/images/01.jpg'),
+  require('./assets/images/03.jpg'),
+  require('./assets/images/04.jpg'),
+  require('./assets/images/05.jpg'),
+  require('./assets/images/06.jpg'),
+  require('./assets/images/07.jpg'),
+  require('./assets/images/08.jpg'),
+  require('./assets/images/09.jpg'),
+]
 
 const App = () => {
   return (
    <View style={styles.container}>
-     <Ripple style={styles.ripple} onTap={() => {
-        console.log('Tapped');
-     }}>
-        <Text style={styles.text}>Tab</Text>
-     </Ripple>
+     <CircularCarousel data={data}/>
    </View>
   );
 };
@@ -20,25 +28,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  ripple: {
-    width: 200,
-    height: 200,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'white',
-    borderRadius: 20,
-    shadowOpacity: 0.2,
-    shadowRadius: 20,
-    shadowOffset: {
-      width: 0,
-      height: 0,
-    },
-    elevation: 5,
-  },
-  text: {
-    fontSize: 24,
-    color: 'black',
-  }
 });
 
 export default App;
