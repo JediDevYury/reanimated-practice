@@ -1,33 +1,52 @@
-import { View, StyleSheet} from 'react-native';
-import CircularCarousel from "./components/CircularCarousel";
+import { useEffect, useState } from 'react';
+import { View, StyleSheet} from "react-native";
+import * as Font from 'expo-font';
+import {StatusBar} from 'expo-status-bar';
+import {Palette} from "./constants";
+import sfCompactRoundedMedium from './assets/fonts/SF-Compact-Rounded-Medium.otf';
+import SegmentedControl from "./components/SegmentedConrol"; // medium
 
-const data = [
-  require('./assets/images/00.jpg'),
-  require('./assets/images/01.jpg'),
-  require('./assets/images/03.jpg'),
-  require('./assets/images/04.jpg'),
-  require('./assets/images/05.jpg'),
-  require('./assets/images/06.jpg'),
-  require('./assets/images/07.jpg'),
-  require('./assets/images/08.jpg'),
-  require('./assets/images/09.jpg'),
-]
+const options = ['Light', 'Standard', 'Pro', "Metal"];
 
-const App = () => {
+export function App() {
+  const [selectedOption, setSelectedOption] = useState('Standard');
+
   return (
    <View style={styles.container}>
-     <CircularCarousel data={data}/>
+     <StatusBar style="auto" />
+     <SegmentedControl
+      options={options}
+      selectedOption={selectedOption}
+      onSelect={setSelectedOption}
+     />
    </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: Palette.background,
     alignItems: 'center',
     justifyContent: 'center',
   },
 });
 
-export default App;
+const AppContainer = () => {
+  const [fontsLoaded, setFontsLoaded] = useState(false);
+
+  // Load custom fonts using async Font.loadAsync
+  useEffect(() => {
+    (async () => {
+      await Font.loadAsync({
+        'SF-Compact-Rounded-Medium': sfCompactRoundedMedium, // medium
+      });
+      setFontsLoaded(true);
+    })();
+  }, []);
+
+  return <>{fontsLoaded && <App />}</>;
+};
+
+// eslint-disable-next-line import/no-default-export
+export default AppContainer;
