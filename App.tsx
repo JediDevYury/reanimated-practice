@@ -1,56 +1,67 @@
-import { useEffect, useState } from 'react';
-import { View, StyleSheet} from "react-native";
-import * as Font from 'expo-font';
+import {useEffect, useMemo, useState} from 'react';
+import {View, StyleSheet, FlatList, Text} from "react-native";
 import {StatusBar} from 'expo-status-bar';
-import sfCompactRoundedMedium from './assets/fonts/SF-Compact-Rounded-Medium.otf';
-import Dropdown from "./components/Dropdown";
+import ContactsListItem from "./components/ContactsListItem";
+import {SafeAreaView} from "moti";
 
-const options = [
-  { label: 'Charts', iconName: 'barschart' },
-  { label: 'Book', iconName: 'book' },
-  { label: 'Calendar', iconName: 'calendar' },
-  { label: 'Camera', iconName: 'camera' },
-];
-
-const header = {
-  label: 'Header',
-  iconName: 'ellipsis1',
-};
+export type ContactInfo = {
+  name: string;
+  email: string;
+}
 
 export function App() {
+  const [contacts, setContacts] = useState<ContactInfo[] | undefined>()
+  const contactsPlaceholderList = useMemo(() => Array.from({length: 15}).map((_, index) => {
+    return null
+  }), []);
+
+  const fetchContacts = async () => {
+    const response = await fetch('https://jsonplaceholder.typicode.com/users')
+
+    if (response.ok) {
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+      const data = await response.json()
+      console.log(data)
+      setContacts(data)
+    } else {
+      console.error('Failed to fetch data')
+    }
+  };
+
+  useEffect(() => {
+    fetchContacts()
+  }, []);
 
   return (
-   <View style={styles.container}>
-     <Dropdown header={header} options={options}/>
+   <SafeAreaView style={styles.container}>
      <StatusBar style="auto" />
-   </View>
+     <FlatList
+      data={contacts ?? contactsPlaceholderList}
+      ItemSeparatorComponent={() => {
+        return <View style={{
+          height: 1,
+          width: '100%',
+          backgroundColor: 'gray',
+        }}/>
+      }}
+      renderItem={({item}) => {
+        return <ContactsListItem contact={item}/>
+      }}
+      keyExtractor={(item) => {
+        return item?.name ?? Math.random().toString()
+      }}
+     />
+   </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#111",
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#fff",
   },
 });
 
-const AppContainer = () => {
-  const [fontsLoaded, setFontsLoaded] = useState(false);
-
-  // Load custom fonts using async Font.loadAsync
-  useEffect(() => {
-    (async () => {
-      await Font.loadAsync({
-        'SF-Compact-Rounded-Medium': sfCompactRoundedMedium, // medium
-      });
-      setFontsLoaded(true);
-    })();
-  }, []);
-
-  return <>{fontsLoaded && <App />}</>;
-};
 
 // eslint-disable-next-line import/no-default-export
-export default AppContainer;
+export default App;
